@@ -131,7 +131,7 @@ textarea {
   border: 1px solid #166534;
 }
 
-/* MOBILE / WEB USER APP */
+/* USER APP */
 
 .mobile-wrap {
   max-width: 460px;
@@ -546,7 +546,7 @@ textarea {
     margin: 30px auto;
     min-height: auto;
     border-radius: 34px;
-    padding-bottom: 30px;
+    padding-bottom: 42px;
   }
 
   .hero {
@@ -586,10 +586,26 @@ textarea {
 
   .bottom-nav {
     position: sticky;
-    bottom: 20px;
-    margin: 20px auto 0;
-    border-radius: 26px;
-    max-width: 680px;
+    bottom: 24px;
+    margin: 34px auto 0;
+    border-radius: 30px;
+    max-width: 980px;
+    height: 88px;
+  }
+
+  .nav-btn {
+    font-size: 15px;
+  }
+
+  .nav-btn strong {
+    font-size: 28px;
+  }
+
+  .floating {
+    width: 72px;
+    height: 72px;
+    font-size: 42px;
+    margin-top: -32px;
   }
 }
 
