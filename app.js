@@ -5,7 +5,7 @@ let currentView = "login";
 
 const actividades = [
   { titulo: "Mantenimiento de jardines", fecha: "25 mayo", hora: "8:00 AM", lugar: "Zonas comunes" },
-  { titulo: "Reunión de Comité", fecha: "28 mayo", hora: "6:00 PM", lugar: "Salón Social" },
+  { titulo: "Asamblea General", fecha: "28 mayo", hora: "6:00 PM", lugar: "Salón Social" },
   { titulo: "Clases de Yoga", fecha: "30 mayo", hora: "7:00 AM", lugar: "Área de Yoga" }
 ];
 
@@ -56,7 +56,7 @@ function renderLogin() {
 function loginUsuario() {
   currentUser = "Laura Gómez";
   currentView = "usuario";
-  renderUsuario();
+  renderUsuario("inicio");
 }
 
 function loginAdmin() {
@@ -81,11 +81,23 @@ function renderUsuario(seccion = "inicio") {
       }
 
       <div class="bottom-nav">
-        <button class="nav-btn" onclick="renderUsuario('inicio')"><strong>🏠</strong>Inicio</button>
-        <button class="nav-btn" onclick="renderUsuario('avisos')"><strong>🔔</strong>Avisos</button>
+        <button class="nav-btn ${seccion === "inicio" ? "active" : ""}" onclick="renderUsuario('inicio')">
+          <strong>🏠</strong>Inicio
+        </button>
+
+        <button class="nav-btn ${seccion === "avisos" ? "active" : ""}" onclick="renderUsuario('avisos')">
+          <strong>🔔</strong>Avisos
+        </button>
+
         <button class="floating" onclick="renderUsuario('reportar')">+</button>
-        <button class="nav-btn" onclick="renderUsuario('calendario')"><strong>📅</strong>Calendario</button>
-        <button class="nav-btn" onclick="renderUsuario('perfil')"><strong>👤</strong>Perfil</button>
+
+        <button class="nav-btn ${seccion === "calendario" ? "active" : ""}" onclick="renderUsuario('calendario')">
+          <strong>📅</strong>Calendario
+        </button>
+
+        <button class="nav-btn ${seccion === "perfil" ? "active" : ""}" onclick="renderUsuario('perfil')">
+          <strong>👤</strong>Perfil
+        </button>
       </div>
     </div>
   `;
@@ -94,6 +106,11 @@ function renderUsuario(seccion = "inicio") {
 function usuarioInicio() {
   return `
     <div class="hero">
+      <div class="notify-bubble">
+        🔔
+        <span class="notify-count">3</span>
+      </div>
+
       <div>
         <h1>Condominio<br>Los Jardines</h1>
         <p>Bienvenido, Laura 👋</p>
@@ -102,22 +119,56 @@ function usuarioInicio() {
 
     <div class="mobile-content">
       <div class="actions">
-        <div class="action-card" onclick="renderUsuario('avisos')"><span>🔔</span><p>Avisos</p></div>
-        <div class="action-card" onclick="renderUsuario('calendario')"><span>📅</span><p>Calendario</p></div>
-        <div class="action-card" onclick="renderUsuario('reportar')"><span>📝</span><p>Consulta o Queja</p></div>
-        <div class="action-card" onclick="renderUsuario('reportar')"><span>📸</span><p>Reportar Incidencia</p></div>
+
+        <div class="action-card" onclick="renderUsuario('avisos')">
+          <div class="action-icon">🔔</div>
+          <h3>Avisos</h3>
+          <p>Entérate de las últimas noticias y avisos.</p>
+          <span class="arrow">›</span>
+        </div>
+
+        <div class="action-card" onclick="renderUsuario('calendario')">
+          <div class="action-icon">📅</div>
+          <h3>Calendario</h3>
+          <p>Consulta las actividades del condominio.</p>
+          <span class="arrow">›</span>
+        </div>
+
+        <div class="action-card" onclick="renderUsuario('reportar')">
+          <div class="action-icon">📝</div>
+          <h3>Consulta o Queja</h3>
+          <p>Envía tus consultas, quejas o sugerencias.</p>
+          <span class="arrow">›</span>
+        </div>
+
+        <div class="action-card" onclick="renderUsuario('reportar')">
+          <div class="action-icon">📷</div>
+          <h3>Reportar Incidencia</h3>
+          <p>Informa sobre situaciones o incidencias.</p>
+          <span class="arrow">›</span>
+        </div>
+
       </div>
 
-      <div class="section">
-        <h3>Próximas actividades</h3>
-        ${actividades.map(a => `
-          <div class="card list-item">
-            <strong>${a.titulo}</strong><br>
-            ${a.fecha}, ${a.hora}<br>
-            <small>${a.lugar}</small>
-          </div>
-        `).join("")}
+      <div class="section-title">
+        <h3>📅 Próximas actividades</h3>
+        <a onclick="renderUsuario('calendario')">Ver todas</a>
       </div>
+
+      ${actividades.map((a, i) => `
+        <div class="activity-card">
+          <div class="round-icon">${i === 0 ? "🌿" : i === 1 ? "👥" : "🧘"}</div>
+
+          <div class="activity-info">
+            <strong>${a.titulo}</strong><br>
+            <small>📅 ${a.fecha}, ${a.hora} &nbsp; 📍 ${a.lugar}</small>
+          </div>
+
+          <span class="badge ${i === 0 ? "green" : i === 1 ? "blue" : "orange"}">
+            Programada
+          </span>
+        </div>
+      `).join("")}
     </div>
   `;
 }
@@ -126,11 +177,17 @@ function usuarioAvisos() {
   return `
     <div class="mobile-content">
       <h2>Avisos y Noticias</h2>
-      ${avisos.map(a => `
+
+      ${avisos.map((a, i) => `
         <div class="card list-item">
-          <strong>${a.titulo}</strong>
-          <p>${a.texto}</p>
-          <span class="badge green">${a.tipo}</span>
+          <div class="activity-card" style="box-shadow:none; margin-bottom:0;">
+            <div class="round-icon">${i === 0 ? "🌿" : i === 1 ? "💰" : "🎉"}</div>
+            <div class="activity-info">
+              <strong>${a.titulo}</strong>
+              <p>${a.texto}</p>
+              <span class="badge ${a.tipo === "Noticia" ? "blue" : "green"}">${a.tipo}</span>
+            </div>
+          </div>
         </div>
       `).join("")}
     </div>
@@ -141,16 +198,27 @@ function usuarioCalendario() {
   return `
     <div class="mobile-content">
       <h2>Calendario de Actividades</h2>
+
       <div class="card">
         <h3>Mayo 2024</h3>
         <p>Calendario visual de actividades del condominio.</p>
       </div>
 
-      ${actividades.map(a => `
-        <div class="card list-item">
-          <strong>${a.titulo}</strong><br>
-          ${a.fecha} - ${a.hora}<br>
-          <small>${a.lugar}</small>
+      <br>
+
+      ${actividades.map((a, i) => `
+        <div class="activity-card">
+          <div class="round-icon">${i === 0 ? "🌿" : i === 1 ? "👥" : "🧘"}</div>
+
+          <div class="activity-info">
+            <strong>${a.titulo}</strong><br>
+            <small>📅 ${a.fecha}, ${a.hora}</small><br>
+            <small>📍 ${a.lugar}</small>
+          </div>
+
+          <span class="badge ${i === 0 ? "green" : i === 1 ? "blue" : "orange"}">
+            Programada
+          </span>
         </div>
       `).join("")}
     </div>
@@ -221,11 +289,11 @@ function renderAdmin(seccion) {
       <aside class="sidebar">
         <div class="brand">🌿 Condominio<br>Los Jardines</div>
 
-        <button class="menu-btn active" onclick="renderAdmin('dashboard')">🏠 Dashboard</button>
-        <button class="menu-btn" onclick="renderAdmin('usuarios')">👥 Usuarios</button>
-        <button class="menu-btn" onclick="renderAdmin('actividades')">📅 Actividades</button>
-        <button class="menu-btn" onclick="renderAdmin('avisos')">🔔 Avisos</button>
-        <button class="menu-btn" onclick="renderAdmin('solicitudes')">📝 Solicitudes</button>
+        <button class="menu-btn ${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">🏠 Dashboard</button>
+        <button class="menu-btn ${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">👥 Usuarios</button>
+        <button class="menu-btn ${seccion === "actividades" ? "active" : ""}" onclick="renderAdmin('actividades')">📅 Actividades</button>
+        <button class="menu-btn ${seccion === "avisos" ? "active" : ""}" onclick="renderAdmin('avisos')">🔔 Avisos</button>
+        <button class="menu-btn ${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">📝 Solicitudes</button>
         <button class="menu-btn" onclick="currentView='login'; render()">🚪 Cerrar sesión</button>
       </aside>
 
@@ -254,26 +322,57 @@ function renderAdmin(seccion) {
 function adminDashboard() {
   return `
     <div class="grid">
-      <div class="card stat"><div class="icon">👥</div><div><h3>156</h3><p>Usuarios activos</p></div></div>
-      <div class="card stat"><div class="icon">📝</div><div><h3>23</h3><p>Incidencias abiertas</p></div></div>
-      <div class="card stat"><div class="icon">📅</div><div><h3>12</h3><p>Actividades del mes</p></div></div>
-      <div class="card stat"><div class="icon">🔔</div><div><h3>5</h3><p>Avisos activos</p></div></div>
+      <div class="card stat">
+        <div class="icon">👥</div>
+        <div>
+          <h3>156</h3>
+          <p>Usuarios activos</p>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="icon">📝</div>
+        <div>
+          <h3>23</h3>
+          <p>Incidencias abiertas</p>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="icon">📅</div>
+        <div>
+          <h3>12</h3>
+          <p>Actividades del mes</p>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="icon">🔔</div>
+        <div>
+          <h3>5</h3>
+          <p>Avisos activos</p>
+        </div>
+      </div>
     </div>
 
     <div class="section two-cols">
       <div class="card">
         <h3>Solicitudes recientes</h3>
+
         ${solicitudes.map(s => `
           <div class="list-item">
             <strong>${s.titulo}</strong><br>
-            <small>${s.usuario}</small><br>
-            <span class="badge ${s.estado === 'Atendida' ? 'green' : s.estado === 'En proceso' ? 'blue' : 'orange'}">${s.estado}</span>
+            <small>${s.usuario}</small><br><br>
+            <span class="badge ${s.estado === "Atendida" ? "green" : s.estado === "En proceso" ? "blue" : "orange"}">
+              ${s.estado}
+            </span>
           </div>
         `).join("")}
       </div>
 
       <div class="card">
         <h3>Próximas actividades</h3>
+
         ${actividades.map(a => `
           <div class="list-item">
             <strong>${a.titulo}</strong><br>
@@ -317,6 +416,7 @@ function adminActividades() {
 
       <div class="card">
         <h3>Actividades registradas</h3>
+
         ${actividades.map(a => `
           <div class="list-item">
             <strong>${a.titulo}</strong><br>
@@ -359,11 +459,12 @@ function adminAvisos() {
 
       <div class="card">
         <h3>Avisos publicados</h3>
+
         ${avisos.map(a => `
           <div class="list-item">
             <strong>${a.titulo}</strong>
             <p>${a.texto}</p>
-            <span class="badge green">${a.tipo}</span>
+            <span class="badge ${a.tipo === "Noticia" ? "blue" : "green"}">${a.tipo}</span>
           </div>
         `).join("")}
       </div>
@@ -380,9 +481,16 @@ function adminSolicitudes() {
         <div class="list-item">
           <strong>${s.titulo}</strong><br>
           <small>Enviado por: ${s.usuario}</small><br><br>
-          <span class="badge ${s.estado === 'Atendida' ? 'green' : s.estado === 'En proceso' ? 'blue' : 'orange'}">${s.estado}</span>
+
+          <span class="badge ${s.estado === "Atendida" ? "green" : s.estado === "En proceso" ? "blue" : "orange"}">
+            ${s.estado}
+          </span>
+
           <br><br>
-          <button class="btn" onclick="alert('Estado actualizado en modo demo')">Cambiar estado</button>
+
+          <button class="btn" onclick="alert('Estado actualizado en modo demo')">
+            Cambiar estado
+          </button>
         </div>
       `).join("")}
     </div>
