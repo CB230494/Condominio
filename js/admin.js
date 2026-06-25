@@ -16,7 +16,7 @@ function renderAdmin(seccion = "dashboard") {
 
       <main class="main">
         <div class="topbar">
-          <h2>Panel Administrativo</h2>
+          <h2>${seccion === "dashboard" ? "Dashboard Ejecutivo" : "Panel Administrativo"}</h2>
           <div class="user-pill">Administrador 👤</div>
         </div>
 
@@ -36,6 +36,10 @@ function renderAdmin(seccion = "dashboard") {
   if (seccion === "solicitudes") cargarSolicitudesAdmin();
 }
 
+/******************************************************
+ * DASHBOARD EJECUTIVO
+ ******************************************************/
+
 function adminDashboard() {
   return `
     <div class="grid">
@@ -44,6 +48,14 @@ function adminDashboard() {
         <div>
           <h3 id="totalUsuarios">0</h3>
           <p>Usuarios registrados</p>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="icon">✅</div>
+        <div>
+          <h3 id="usuariosActivos">0</h3>
+          <p>Usuarios activos</p>
         </div>
       </div>
 
@@ -59,28 +71,130 @@ function adminDashboard() {
         <div class="icon">📝</div>
         <div>
           <h3 id="totalSolicitudes">0</h3>
-          <p>Solicitudes registradas</p>
+          <p>Solicitudes totales</p>
         </div>
+      </div>
+
+      <div class="card stat">
+        <div class="icon">🔄</div>
+        <div>
+          <h3 id="solicitudesProceso">0</h3>
+          <p>En proceso</p>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="icon">🔒</div>
+        <div>
+          <h3 id="solicitudesCerradas">0</h3>
+          <p>Cerradas</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section two-cols">
+      <div class="card">
+        <h3>📋 Últimas solicitudes</h3>
+        <div id="ultimasSolicitudesBox">Cargando...</div>
+      </div>
+
+      <div class="card">
+        <h3>👥 Últimos usuarios</h3>
+        <div id="ultimosUsuariosBox">Cargando...</div>
+      </div>
+    </div>
+
+    <div class="section two-cols">
+      <div class="card">
+        <h3>📊 Indicadores</h3>
+
+        <div class="metric-block">
+          <strong>Solicitudes atendidas/cerradas</strong>
+          <div class="progress-line">
+            <div id="barraAtendidas" class="progress-fill"></div>
+          </div>
+          <small id="txtAtendidas">0%</small>
+        </div>
+
+        <br>
+
+        <div class="metric-block">
+          <strong>Usuarios activos</strong>
+          <div class="progress-line">
+            <div id="barraUsuariosActivos" class="progress-fill"></div>
+          </div>
+          <small id="txtUsuariosActivos">0%</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>⚡ Accesos rápidos</h3>
+
+        <button class="btn" onclick="renderAdmin('solicitudes')">Ver solicitudes</button>
+        <br><br>
+        <button class="btn btn-outline" onclick="renderAdmin('usuarios')">Gestionar usuarios</button>
       </div>
     </div>
   `;
 }
 
 async function cargarDashboardAdmin() {
-  const usuarios = await API.listarUsuariosAdmin();
-  const solicitudes = await API.listarSolicitudesAdmin();
+  const usuariosResp = await API.listarUsuariosAdmin();
+  const solicitudesResp = await API.listarSolicitudesAdmin();
 
-  if (usuarios.ok) {
-    const lista = usuarios.data.usuarios || [];
-    document.getElementById("totalUsuarios").innerText = lista.length;
-    document.getElementById("usuariosPendientes").innerText =
-      lista.filter(u => u.ESTADO === "Pendiente").length;
-  }
+  const usuarios = usuariosResp.ok ? usuariosResp.data.usuarios || [] : [];
+  const solicitudes = solicitudesResp.ok ? solicitudesResp.data.solicitudes || [] : [];
 
-  if (solicitudes.ok) {
-    document.getElementById("totalSolicitudes").innerText =
-      (solicitudes.data.solicitudes || []).length;
-  }
+  const usuariosActivos = usuarios.filter(u => u.ESTADO === "Activo").length;
+  const usuariosPendientes = usuarios.filter(u => u.ESTADO === "Pendiente").length;
+
+  const solicitudesProceso = solicitudes.filter(s => s.ESTADO === "En proceso").length;
+  const solicitudesCerradas = solicitudes.filter(s => s.ESTADO === "Cerrada").length;
+  const solicitudesAtendidas = solicitudes.filter(s => s.ESTADO === "Atendida" || s.ESTADO === "Cerrada").length;
+
+  document.getElementById("totalUsuarios").innerText = usuarios.length;
+  document.getElementById("usuariosActivos").innerText = usuariosActivos;
+  document.getElementById("usuariosPendientes").innerText = usuariosPendientes;
+  document.getElementById("totalSolicitudes").innerText = solicitudes.length;
+  document.getElementById("solicitudesProceso").innerText = solicitudesProceso;
+  document.getElementById("solicitudesCerradas").innerText = solicitudesCerradas;
+
+  const ultimasSolicitudes = solicitudes.slice().reverse().slice(0, 5);
+  const ultimosUsuarios = usuarios.slice().reverse().slice(0, 5);
+
+  document.getElementById("ultimasSolicitudesBox").innerHTML =
+    ultimasSolicitudes.length === 0
+      ? "No hay solicitudes registradas."
+      : ultimasSolicitudes.map(s => `
+        <div class="list-item">
+          <strong>${s.ASUNTO || ""}</strong><br>
+          <small>${fechaBonitaAdmin(s.FECHA_HORA)}</small><br>
+          <small>${s.NOMBRE_COMPLETO || ""} · ${s.TIPO || ""}</small><br>
+          <span class="badge ${badgeSolicitud(estadoSeguro(s.ESTADO))}">${estadoSeguro(s.ESTADO)}</span>
+          <span class="badge ${badgePrioridad(s.PRIORIDAD || "Media")}">${s.PRIORIDAD || "Media"}</span>
+        </div>
+      `).join("");
+
+  document.getElementById("ultimosUsuariosBox").innerHTML =
+    ultimosUsuarios.length === 0
+      ? "No hay usuarios registrados."
+      : ultimosUsuarios.map(u => `
+        <div class="list-item">
+          <strong>${u.NOMBRE || ""} ${u.APELLIDOS || ""}</strong><br>
+          <small>${u.FILIAL || ""}</small><br>
+          <small>${fechaBonitaAdmin(u.FECHA_REGISTRO)}</small><br>
+          <span class="badge ${badgeUsuario(u.ESTADO)}">${u.ESTADO || "Pendiente"}</span>
+        </div>
+      `).join("");
+
+  const pctAtendidas = solicitudes.length ? Math.round((solicitudesAtendidas / solicitudes.length) * 100) : 0;
+  const pctActivos = usuarios.length ? Math.round((usuariosActivos / usuarios.length) * 100) : 0;
+
+  document.getElementById("barraAtendidas").style.width = `${pctAtendidas}%`;
+  document.getElementById("txtAtendidas").innerText = `${pctAtendidas}%`;
+
+  document.getElementById("barraUsuariosActivos").style.width = `${pctActivos}%`;
+  document.getElementById("txtUsuariosActivos").innerText = `${pctActivos}%`;
 }
 
 /******************************************************
@@ -120,7 +234,7 @@ async function cargarUsuariosAdmin() {
       <small>Filial: ${u.FILIAL || ""}</small><br>
       <small>Registro: ${fechaBonitaAdmin(u.FECHA_REGISTRO)}</small><br><br>
 
-      <span class="badge ${badgeUsuario(u.ESTADO)}">${u.ESTADO}</span>
+      <span class="badge ${badgeUsuario(u.ESTADO)}">${u.ESTADO || "Pendiente"}</span>
 
       <br><br>
 
@@ -184,7 +298,7 @@ async function cargarSolicitudesAdmin() {
 
   box.innerHTML = solicitudes.reverse().map(s => {
     const prioridad = s.PRIORIDAD || "Media";
-    const estado = estadoValido(s.ESTADO) ? s.ESTADO : "Pendiente";
+    const estado = estadoSeguro(s.ESTADO);
     const responsable = s.RESPONSABLE || "Pendiente de asignación";
 
     return `
@@ -286,8 +400,10 @@ function badgePrioridad(prioridad) {
   return "orange";
 }
 
-function estadoValido(estado) {
-  return ["Pendiente", "En proceso", "Atendida", "Cerrada"].includes(estado);
+function estadoSeguro(estado) {
+  return ["Pendiente", "En proceso", "Atendida", "Cerrada"].includes(estado)
+    ? estado
+    : "Pendiente";
 }
 
 function fechaBonitaAdmin(valor) {
