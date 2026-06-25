@@ -1,38 +1,43 @@
+const API_URL = "https://script.google.com/macros/s/AKfycbyvMO2z8X_4B7qb4vFr6rVGGsEOgXGZNW3hscNZWnA-ogQpSfITrySJSnBq2uCdPtT4/exec";
+
 const app = document.getElementById("app");
 
-let currentUser = null;
-let currentView = "login";
+let currentUser = JSON.parse(localStorage.getItem("condoUser")) || null;
+let currentAdmin = JSON.parse(localStorage.getItem("condoAdmin")) || null;
+let currentView = currentUser ? "usuario" : currentAdmin ? "admin" : "login";
 
-const actividades = [
-  { titulo: "Mantenimiento de jardines", fecha: "25 mayo", hora: "8:00 AM", lugar: "Zonas comunes" },
-  { titulo: "Asamblea General", fecha: "28 mayo", hora: "6:00 PM", lugar: "Salón Social" },
-  { titulo: "Clases de Yoga", fecha: "30 mayo", hora: "7:00 AM", lugar: "Área de Yoga" }
-];
+async function api(accion, payload = {}) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ accion, ...payload })
+    });
 
-const avisos = [
-  { titulo: "Mantenimiento de jardines", texto: "Se realizará mantenimiento en las áreas verdes.", tipo: "Aviso" },
-  { titulo: "Recordatorio de pago", texto: "Recuerde cancelar la cuota de mantenimiento.", tipo: "Aviso" },
-  { titulo: "Fiesta de la comunidad", texto: "Actividad familiar este sábado.", tipo: "Noticia" }
-];
-
-const solicitudes = [
-  { titulo: "Fuga de agua en pasillo", usuario: "María López", estado: "Pendiente" },
-  { titulo: "Problema con el ascensor", usuario: "Juan Pérez", estado: "En proceso" },
-  { titulo: "Iluminación en zona común", usuario: "Ana García", estado: "Atendida" }
-];
+    return await res.json();
+  } catch (err) {
+    return {
+      ok: false,
+      mensaje: "No se pudo conectar con el backend."
+    };
+  }
+}
 
 function render() {
   if (currentView === "login") renderLogin();
-  if (currentView === "usuario") renderUsuario();
+  if (currentView === "registro") renderRegistro();
+  if (currentView === "usuario") renderUsuario("inicio");
+  if (currentView === "adminLogin") renderAdminLogin();
   if (currentView === "admin") renderAdmin("dashboard");
 }
+
+/* LOGIN */
 
 function renderLogin() {
   app.innerHTML = `
     <div class="login-screen">
       <div class="login-card">
         <div class="logo">🌿</div>
-        <h1>Mi Condominio</h1>
+        <h1>Condominio Los Jardines</h1>
         <p>Vive en armonía</p>
 
         <div class="field">
@@ -45,25 +50,158 @@ function renderLogin() {
           <input id="pass" type="password" placeholder="********">
         </div>
 
-        <button class="btn" onclick="loginUsuario()">Iniciar como Usuario</button>
+        <button class="btn" onclick="loginUsuario()">Iniciar sesión</button>
         <br><br>
-        <button class="btn btn-outline" onclick="loginAdmin()">Ingresar como Administrador</button>
+        <button class="btn btn-outline" onclick="currentView='registro'; render()">Crear cuenta</button>
+
+        <div style="text-align:center; margin-top:22px;">
+          <a onclick="currentView='adminLogin'; render()" style="font-size:12px; color:#6b7280; cursor:pointer;">
+            Acceso administrativo
+          </a>
+        </div>
       </div>
     </div>
   `;
 }
 
-function loginUsuario() {
-  currentUser = "Laura Gómez";
+function renderRegistro() {
+  app.innerHTML = `
+    <div class="login-screen">
+      <div class="login-card">
+        <div class="logo">👤</div>
+        <h1>Registro de usuario</h1>
+        <p>Complete sus datos para solicitar acceso.</p>
+
+        <div class="field">
+          <label>Nombre</label>
+          <input id="regNombre" placeholder="Nombre">
+        </div>
+
+        <div class="field">
+          <label>Apellidos</label>
+          <input id="regApellidos" placeholder="Apellidos">
+        </div>
+
+        <div class="field">
+          <label>Teléfono</label>
+          <input id="regTelefono" placeholder="86161763">
+        </div>
+
+        <div class="field">
+          <label>Correo</label>
+          <input id="regCorreo" placeholder="correo@email.com">
+        </div>
+
+        <div class="field">
+          <label>Filial / Casa / Apartamento</label>
+          <input id="regFilial" placeholder="Ejemplo: Casa 12">
+        </div>
+
+        <div class="field">
+          <label>Torre</label>
+          <input id="regTorre" placeholder="Opcional">
+        </div>
+
+        <div class="field">
+          <label>Apartamento</label>
+          <input id="regApartamento" placeholder="Opcional">
+        </div>
+
+        <div class="field">
+          <label>Contraseña</label>
+          <input id="regPassword" type="password" placeholder="Crear contraseña">
+        </div>
+
+        <button class="btn" onclick="registrarUsuario()">Registrarme</button>
+        <br><br>
+        <button class="btn btn-outline" onclick="currentView='login'; render()">Volver</button>
+      </div>
+    </div>
+  `;
+}
+
+async function registrarUsuario() {
+  const data = {
+    nombre: document.getElementById("regNombre").value,
+    apellidos: document.getElementById("regApellidos").value,
+    telefono: document.getElementById("regTelefono").value,
+    correo: document.getElementById("regCorreo").value,
+    filial: document.getElementById("regFilial").value,
+    torre: document.getElementById("regTorre").value,
+    apartamento: document.getElementById("regApartamento").value,
+    password: document.getElementById("regPassword").value
+  };
+
+  const r = await api("registrarUsuario", data);
+  alert(r.mensaje);
+
+  if (r.ok) {
+    currentView = "login";
+    render();
+  }
+}
+
+async function loginUsuario() {
+  const correo = document.getElementById("email").value;
+  const password = document.getElementById("pass").value;
+
+  const r = await api("loginUsuario", { correo, password });
+
+  if (!r.ok) {
+    alert(r.mensaje);
+    return;
+  }
+
+  currentUser = r.data.usuario;
+  localStorage.setItem("condoUser", JSON.stringify(currentUser));
   currentView = "usuario";
   renderUsuario("inicio");
 }
 
-function loginAdmin() {
-  currentUser = "Administrador";
+function renderAdminLogin() {
+  app.innerHTML = `
+    <div class="login-screen">
+      <div class="login-card">
+        <div class="logo">🔐</div>
+        <h1>Administrador</h1>
+        <p>Acceso restringido</p>
+
+        <div class="field">
+          <label>Usuario</label>
+          <input id="adminUser" placeholder="admin">
+        </div>
+
+        <div class="field">
+          <label>Contraseña</label>
+          <input id="adminPass" type="password" placeholder="1234">
+        </div>
+
+        <button class="btn" onclick="loginAdmin()">Ingresar</button>
+        <br><br>
+        <button class="btn btn-outline" onclick="currentView='login'; render()">Volver</button>
+      </div>
+    </div>
+  `;
+}
+
+async function loginAdmin() {
+  const usuario = document.getElementById("adminUser").value;
+  const password = document.getElementById("adminPass").value;
+
+  const r = await api("loginAdmin", { usuario, password });
+
+  if (!r.ok) {
+    alert(r.mensaje);
+    return;
+  }
+
+  currentAdmin = r.data.admin;
+  localStorage.setItem("condoAdmin", JSON.stringify(currentAdmin));
   currentView = "admin";
   renderAdmin("dashboard");
 }
+
+/* USUARIO */
 
 function renderUsuario(seccion = "inicio") {
   app.innerHTML = `
@@ -71,12 +209,10 @@ function renderUsuario(seccion = "inicio") {
       ${
         seccion === "inicio"
           ? usuarioInicio()
-          : seccion === "avisos"
-          ? usuarioAvisos()
-          : seccion === "calendario"
-          ? usuarioCalendario()
           : seccion === "reportar"
           ? usuarioReportar()
+          : seccion === "misSolicitudes"
+          ? usuarioMisSolicitudes()
           : usuarioPerfil()
       }
 
@@ -85,142 +221,53 @@ function renderUsuario(seccion = "inicio") {
           <strong>🏠</strong>Inicio
         </button>
 
-        <button class="nav-btn ${seccion === "avisos" ? "active" : ""}" onclick="renderUsuario('avisos')">
-          <strong>🔔</strong>Avisos
+        <button class="nav-btn ${seccion === "misSolicitudes" ? "active" : ""}" onclick="renderUsuario('misSolicitudes')">
+          <strong>📋</strong>Mis solicitudes
         </button>
 
         <button class="floating" onclick="renderUsuario('reportar')">+</button>
 
-        <button class="nav-btn ${seccion === "calendario" ? "active" : ""}" onclick="renderUsuario('calendario')">
-          <strong>📅</strong>Calendario
-        </button>
-
         <button class="nav-btn ${seccion === "perfil" ? "active" : ""}" onclick="renderUsuario('perfil')">
           <strong>👤</strong>Perfil
+        </button>
+
+        <button class="nav-btn" onclick="cerrarSesion()">
+          <strong>🚪</strong>Salir
         </button>
       </div>
     </div>
   `;
+
+  if (seccion === "misSolicitudes") cargarMisSolicitudes();
 }
 
 function usuarioInicio() {
   return `
     <div class="hero">
-      <div class="notify-bubble">
-        🔔
-        <span class="notify-count">3</span>
-      </div>
-
       <div>
         <h1>Condominio<br>Los Jardines</h1>
-        <p>Bienvenido, Laura 👋</p>
+        <p>Bienvenido, ${currentUser.NOMBRE || "Usuario"} 👋</p>
       </div>
     </div>
 
     <div class="mobile-content">
       <div class="actions">
 
-        <div class="action-card" onclick="renderUsuario('avisos')">
-          <div class="action-icon">🔔</div>
-          <h3>Avisos</h3>
-          <p>Entérate de las últimas noticias y avisos.</p>
-          <span class="arrow">›</span>
-        </div>
-
-        <div class="action-card" onclick="renderUsuario('calendario')">
-          <div class="action-icon">📅</div>
-          <h3>Calendario</h3>
-          <p>Consulta las actividades del condominio.</p>
-          <span class="arrow">›</span>
-        </div>
-
         <div class="action-card" onclick="renderUsuario('reportar')">
           <div class="action-icon">📝</div>
-          <h3>Consulta o Queja</h3>
-          <p>Envía tus consultas, quejas o sugerencias.</p>
+          <h3>Nueva solicitud</h3>
+          <p>Reporte una avería, consulta o queja.</p>
           <span class="arrow">›</span>
         </div>
 
-        <div class="action-card" onclick="renderUsuario('reportar')">
-          <div class="action-icon">📷</div>
-          <h3>Reportar Incidencia</h3>
-          <p>Informa sobre situaciones o incidencias.</p>
+        <div class="action-card" onclick="renderUsuario('misSolicitudes')">
+          <div class="action-icon">📋</div>
+          <h3>Seguimiento</h3>
+          <p>Revise el estado de sus solicitudes.</p>
           <span class="arrow">›</span>
         </div>
 
       </div>
-
-      <div class="section-title">
-        <h3>📅 Próximas actividades</h3>
-        <a onclick="renderUsuario('calendario')">Ver todas</a>
-      </div>
-
-      ${actividades.map((a, i) => `
-        <div class="activity-card">
-          <div class="round-icon">${i === 0 ? "🌿" : i === 1 ? "👥" : "🧘"}</div>
-
-          <div class="activity-info">
-            <strong>${a.titulo}</strong><br>
-            <small>📅 ${a.fecha}, ${a.hora} &nbsp; 📍 ${a.lugar}</small>
-          </div>
-
-          <span class="badge ${i === 0 ? "green" : i === 1 ? "blue" : "orange"}">
-            Programada
-          </span>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-function usuarioAvisos() {
-  return `
-    <div class="mobile-content">
-      <h2>Avisos y Noticias</h2>
-
-      ${avisos.map((a, i) => `
-        <div class="card list-item">
-          <div class="activity-card" style="box-shadow:none; margin-bottom:0;">
-            <div class="round-icon">${i === 0 ? "🌿" : i === 1 ? "💰" : "🎉"}</div>
-            <div class="activity-info">
-              <strong>${a.titulo}</strong>
-              <p>${a.texto}</p>
-              <span class="badge ${a.tipo === "Noticia" ? "blue" : "green"}">${a.tipo}</span>
-            </div>
-          </div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-}
-
-function usuarioCalendario() {
-  return `
-    <div class="mobile-content">
-      <h2>Calendario de Actividades</h2>
-
-      <div class="card">
-        <h3>Mayo 2024</h3>
-        <p>Calendario visual de actividades del condominio.</p>
-      </div>
-
-      <br>
-
-      ${actividades.map((a, i) => `
-        <div class="activity-card">
-          <div class="round-icon">${i === 0 ? "🌿" : i === 1 ? "👥" : "🧘"}</div>
-
-          <div class="activity-info">
-            <strong>${a.titulo}</strong><br>
-            <small>📅 ${a.fecha}, ${a.hora}</small><br>
-            <small>📍 ${a.lugar}</small>
-          </div>
-
-          <span class="badge ${i === 0 ? "green" : i === 1 ? "blue" : "orange"}">
-            Programada
-          </span>
-        </div>
-      `).join("")}
     </div>
   `;
 }
@@ -228,73 +275,134 @@ function usuarioCalendario() {
 function usuarioReportar() {
   return `
     <div class="mobile-content">
-      <h2>Nueva Consulta o Queja</h2>
+      <h2>Nueva solicitud</h2>
 
       <div class="form-card">
         <div class="field">
           <label>Tipo</label>
-          <select>
+          <select id="tipoSolicitud">
             <option>Consulta</option>
             <option>Queja</option>
-            <option>Incidencia</option>
-            <option>Emergencia no crítica</option>
+            <option>Avería</option>
+            <option>Solicitud</option>
+            <option>Sugerencia</option>
           </select>
         </div>
 
         <div class="field">
           <label>Asunto</label>
-          <input placeholder="Ejemplo: Fuga de agua">
+          <input id="asuntoSolicitud" placeholder="Ejemplo: Fuga de agua">
         </div>
 
         <div class="field">
           <label>Descripción</label>
-          <textarea placeholder="Describa la situación..."></textarea>
+          <textarea id="descripcionSolicitud" placeholder="Describa la situación..."></textarea>
         </div>
 
-        <label><strong>Adjuntar foto o video</strong></label>
-        <div class="upload-box">📷 Agregar archivo</div>
-
-        <button class="btn" onclick="alert('Solicitud enviada en modo demo')">Enviar solicitud</button>
+        <button class="btn" onclick="enviarSolicitud()">Enviar solicitud</button>
       </div>
     </div>
   `;
+}
+
+async function enviarSolicitud() {
+  const data = {
+    idUsuario: currentUser.ID_USUARIO,
+    nombre: currentUser.NOMBRE,
+    apellidos: currentUser.APELLIDOS,
+    telefono: currentUser.TELEFONO,
+    correo: currentUser.CORREO,
+    tipo: document.getElementById("tipoSolicitud").value,
+    asunto: document.getElementById("asuntoSolicitud").value,
+    descripcion: document.getElementById("descripcionSolicitud").value
+  };
+
+  const r = await api("registrarSolicitud", data);
+
+  alert(r.mensaje);
+
+  if (r.ok && r.data.whatsappAdmin) {
+    window.open(r.data.whatsappAdmin, "_blank");
+    renderUsuario("misSolicitudes");
+  }
+}
+
+function usuarioMisSolicitudes() {
+  return `
+    <div class="mobile-content">
+      <h2>Mis solicitudes</h2>
+      <div id="misSolicitudesBox" class="card">
+        Cargando solicitudes...
+      </div>
+    </div>
+  `;
+}
+
+async function cargarMisSolicitudes() {
+  const box = document.getElementById("misSolicitudesBox");
+
+  const r = await api("listarSolicitudesUsuario", {
+    idUsuario: currentUser.ID_USUARIO,
+    correo: currentUser.CORREO
+  });
+
+  if (!r.ok) {
+    box.innerHTML = r.mensaje;
+    return;
+  }
+
+  const solicitudes = r.data.solicitudes || [];
+
+  if (solicitudes.length === 0) {
+    box.innerHTML = "No tiene solicitudes registradas.";
+    return;
+  }
+
+  box.innerHTML = solicitudes.reverse().map(s => `
+    <div class="list-item">
+      <strong>${s.ASUNTO}</strong><br>
+      <small>${s.FECHA_HORA}</small><br><br>
+      <span class="badge ${badgeEstado(s.ESTADO)}">${s.ESTADO}</span>
+      <p><strong>Tipo:</strong> ${s.TIPO}</p>
+      <p>${s.DESCRIPCION}</p>
+      ${
+        s.OBSERVACION_ADMIN
+          ? `<p><strong>Observación administración:</strong><br>${s.OBSERVACION_ADMIN}</p>`
+          : `<p><em>Sin observaciones administrativas todavía.</em></p>`
+      }
+    </div>
+  `).join("");
 }
 
 function usuarioPerfil() {
   return `
     <div class="mobile-content">
-      <h2>Mi Perfil</h2>
+      <h2>Mi perfil</h2>
 
       <div class="card" style="text-align:center">
         <div class="logo">👤</div>
-        <h3>Laura Gómez</h3>
-        <p>Torre A - Apartamento 102</p>
-        <p>laura@email.com</p>
+        <h3>${currentUser.NOMBRE} ${currentUser.APELLIDOS}</h3>
+        <p>${currentUser.FILIAL || ""}</p>
+        <p>${currentUser.CORREO}</p>
+        <p>${currentUser.TELEFONO}</p>
       </div>
-
-      <br>
-
-      <button class="btn btn-outline">Mis datos</button>
-      <br><br>
-      <button class="btn btn-outline">Mis reportes</button>
-      <br><br>
-      <button class="btn" onclick="currentView='login'; render()">Cerrar sesión</button>
     </div>
   `;
 }
 
-function renderAdmin(seccion) {
+/* ADMIN */
+
+function renderAdmin(seccion = "dashboard") {
   app.innerHTML = `
     <div class="layout">
       <aside class="sidebar">
         <div class="brand">🌿 Condominio<br>Los Jardines</div>
 
         <button class="menu-btn ${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">🏠 Dashboard</button>
-        <button class="menu-btn ${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">👥 Usuarios</button>
-        <button class="menu-btn ${seccion === "actividades" ? "active" : ""}" onclick="renderAdmin('actividades')">📅 Actividades</button>
-        <button class="menu-btn ${seccion === "avisos" ? "active" : ""}" onclick="renderAdmin('avisos')">🔔 Avisos</button>
         <button class="menu-btn ${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">📝 Solicitudes</button>
-        <button class="menu-btn" onclick="currentView='login'; render()">🚪 Cerrar sesión</button>
+        <button class="menu-btn ${seccion === "avisos" ? "active" : ""}" onclick="renderAdmin('avisos')">🔔 Avisos</button>
+        <button class="menu-btn ${seccion === "actividades" ? "active" : ""}" onclick="renderAdmin('actividades')">📅 Actividades</button>
+        <button class="menu-btn" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
       </aside>
 
       <main class="main">
@@ -304,129 +412,119 @@ function renderAdmin(seccion) {
         </div>
 
         ${
-          seccion === "dashboard"
-            ? adminDashboard()
-            : seccion === "actividades"
-            ? adminActividades()
+          seccion === "solicitudes"
+            ? adminSolicitudes()
             : seccion === "avisos"
             ? adminAvisos()
-            : seccion === "solicitudes"
-            ? adminSolicitudes()
-            : adminUsuarios()
+            : seccion === "actividades"
+            ? adminActividades()
+            : adminDashboard()
         }
       </main>
     </div>
   `;
+
+  if (seccion === "dashboard" || seccion === "solicitudes") cargarSolicitudesAdmin();
 }
 
 function adminDashboard() {
   return `
     <div class="grid">
       <div class="card stat">
-        <div class="icon">👥</div>
-        <div>
-          <h3>156</h3>
-          <p>Usuarios activos</p>
-        </div>
-      </div>
-
-      <div class="card stat">
         <div class="icon">📝</div>
         <div>
-          <h3>23</h3>
-          <p>Incidencias abiertas</p>
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="icon">📅</div>
-        <div>
-          <h3>12</h3>
-          <p>Actividades del mes</p>
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="icon">🔔</div>
-        <div>
-          <h3>5</h3>
-          <p>Avisos activos</p>
+          <h3 id="totalSolicitudes">0</h3>
+          <p>Solicitudes registradas</p>
         </div>
       </div>
     </div>
 
-    <div class="section two-cols">
-      <div class="card">
-        <h3>Solicitudes recientes</h3>
-
-        ${solicitudes.map(s => `
-          <div class="list-item">
-            <strong>${s.titulo}</strong><br>
-            <small>${s.usuario}</small><br><br>
-            <span class="badge ${s.estado === "Atendida" ? "green" : s.estado === "En proceso" ? "blue" : "orange"}">
-              ${s.estado}
-            </span>
-          </div>
-        `).join("")}
-      </div>
-
-      <div class="card">
-        <h3>Próximas actividades</h3>
-
-        ${actividades.map(a => `
-          <div class="list-item">
-            <strong>${a.titulo}</strong><br>
-            ${a.fecha}, ${a.hora}<br>
-            <small>${a.lugar}</small>
-          </div>
-        `).join("")}
-      </div>
+    <div class="section card">
+      <h3>Solicitudes recientes</h3>
+      <div id="adminSolicitudesBox">Cargando...</div>
     </div>
   `;
 }
 
-function adminActividades() {
+function adminSolicitudes() {
   return `
-    <div class="two-cols">
-      <div class="form-card">
-        <h3>Nueva actividad</h3>
-
-        <div class="field">
-          <label>Título</label>
-          <input placeholder="Ejemplo: Asamblea General">
-        </div>
-
-        <div class="field">
-          <label>Fecha</label>
-          <input type="date">
-        </div>
-
-        <div class="field">
-          <label>Hora</label>
-          <input type="time">
-        </div>
-
-        <div class="field">
-          <label>Lugar</label>
-          <input placeholder="Salón Social">
-        </div>
-
-        <button class="btn" onclick="alert('Actividad agregada en modo demo')">Guardar actividad</button>
-      </div>
-
-      <div class="card">
-        <h3>Actividades registradas</h3>
-
-        ${actividades.map(a => `
-          <div class="list-item">
-            <strong>${a.titulo}</strong><br>
-            ${a.fecha}, ${a.hora}<br>
-            <small>${a.lugar}</small>
-          </div>
-        `).join("")}
-      </div>
+    <div class="card">
+      <h3>Consultas, quejas, solicitudes y averías</h3>
+      <div id="adminSolicitudesBox">Cargando...</div>
     </div>
   `;
+}
+
+async function cargarSolicitudesAdmin() {
+  const box = document.getElementById("adminSolicitudesBox");
+  const total = document.getElementById("totalSolicitudes");
+
+  const r = await api("listarSolicitudesAdmin");
+
+  if (!r.ok) {
+    box.innerHTML = r.mensaje;
+    return;
+  }
+
+  const solicitudes = r.data.solicitudes || [];
+
+  if (total) total.innerText = solicitudes.length;
+
+  if (solicitudes.length === 0) {
+    box.innerHTML = "No hay solicitudes registradas.";
+    return;
+  }
+
+  box.innerHTML = solicitudes.reverse().map(s => `
+    <div class="list-item">
+      <strong>${s.ASUNTO}</strong><br>
+      <small>${s.FECHA_HORA}</small><br>
+      <small>Enviado por: ${s.NOMBRE_COMPLETO}</small><br><br>
+
+      <span class="badge ${badgeEstado(s.ESTADO)}">${s.ESTADO}</span>
+
+      <p><strong>Tipo:</strong> ${s.TIPO}</p>
+      <p>${s.DESCRIPCION}</p>
+
+      <div class="field">
+        <label>Estado</label>
+        <select id="estado_${s.ID_SOLICITUD}">
+          <option ${s.ESTADO === "Pendiente" ? "selected" : ""}>Pendiente</option>
+          <option ${s.ESTADO === "En proceso" ? "selected" : ""}>En proceso</option>
+          <option ${s.ESTADO === "Atendida" ? "selected" : ""}>Atendida</option>
+          <option ${s.ESTADO === "Cerrada" ? "selected" : ""}>Cerrada</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Observación administrativa</label>
+        <textarea id="obs_${s.ID_SOLICITUD}" placeholder="Comentario para el usuario...">${s.OBSERVACION_ADMIN || ""}</textarea>
+      </div>
+
+      <button class="btn" onclick="actualizarSolicitud('${s.ID_SOLICITUD}')">
+        Guardar seguimiento
+      </button>
+    </div>
+  `).join("");
+}
+
+async function actualizarSolicitud(idSolicitud) {
+  const estado = document.getElementById(`estado_${idSolicitud}`).value;
+  const observacion = document.getElementById(`obs_${idSolicitud}`).value;
+
+  const r = await api("actualizarSolicitud", {
+    idSolicitud,
+    estado,
+    observacion,
+    responsable: "Administrador"
+  });
+
+  alert(r.mensaje);
+
+  if (r.ok && r.data.whatsappUsuario) {
+    window.open(r.data.whatsappUsuario, "_blank");
+    cargarSolicitudesAdmin();
+  }
 }
 
 function adminAvisos() {
@@ -437,12 +535,12 @@ function adminAvisos() {
 
         <div class="field">
           <label>Título</label>
-          <input placeholder="Título del aviso">
+          <input id="avisoTitulo">
         </div>
 
         <div class="field">
           <label>Tipo</label>
-          <select>
+          <select id="avisoTipo">
             <option>Aviso</option>
             <option>Noticia</option>
             <option>Recordatorio</option>
@@ -451,76 +549,91 @@ function adminAvisos() {
 
         <div class="field">
           <label>Mensaje</label>
-          <textarea placeholder="Contenido del aviso..."></textarea>
+          <textarea id="avisoMensaje"></textarea>
         </div>
 
-        <button class="btn" onclick="alert('Aviso publicado en modo demo')">Publicar aviso</button>
-      </div>
-
-      <div class="card">
-        <h3>Avisos publicados</h3>
-
-        ${avisos.map(a => `
-          <div class="list-item">
-            <strong>${a.titulo}</strong>
-            <p>${a.texto}</p>
-            <span class="badge ${a.tipo === "Noticia" ? "blue" : "green"}">${a.tipo}</span>
-          </div>
-        `).join("")}
+        <button class="btn" onclick="registrarAviso()">Publicar aviso</button>
       </div>
     </div>
   `;
 }
 
-function adminSolicitudes() {
+async function registrarAviso() {
+  const r = await api("registrarAviso", {
+    titulo: document.getElementById("avisoTitulo").value,
+    tipo: document.getElementById("avisoTipo").value,
+    mensaje: document.getElementById("avisoMensaje").value,
+    publicadoPor: "Administrador"
+  });
+
+  alert(r.mensaje);
+}
+
+function adminActividades() {
   return `
-    <div class="card">
-      <h3>Consultas, quejas e incidencias</h3>
+    <div class="two-cols">
+      <div class="form-card">
+        <h3>Nueva actividad</h3>
 
-      ${solicitudes.map(s => `
-        <div class="list-item">
-          <strong>${s.titulo}</strong><br>
-          <small>Enviado por: ${s.usuario}</small><br><br>
-
-          <span class="badge ${s.estado === "Atendida" ? "green" : s.estado === "En proceso" ? "blue" : "orange"}">
-            ${s.estado}
-          </span>
-
-          <br><br>
-
-          <button class="btn" onclick="alert('Estado actualizado en modo demo')">
-            Cambiar estado
-          </button>
+        <div class="field">
+          <label>Título</label>
+          <input id="actTitulo">
         </div>
-      `).join("")}
+
+        <div class="field">
+          <label>Fecha</label>
+          <input id="actFecha" type="date">
+        </div>
+
+        <div class="field">
+          <label>Hora</label>
+          <input id="actHora" type="time">
+        </div>
+
+        <div class="field">
+          <label>Lugar</label>
+          <input id="actLugar">
+        </div>
+
+        <div class="field">
+          <label>Descripción</label>
+          <textarea id="actDescripcion"></textarea>
+        </div>
+
+        <button class="btn" onclick="registrarActividad()">Guardar actividad</button>
+      </div>
     </div>
   `;
 }
 
-function adminUsuarios() {
-  return `
-    <div class="card">
-      <h3>Usuarios registrados</h3>
+async function registrarActividad() {
+  const r = await api("registrarActividad", {
+    titulo: document.getElementById("actTitulo").value,
+    fechaActividad: document.getElementById("actFecha").value,
+    hora: document.getElementById("actHora").value,
+    lugar: document.getElementById("actLugar").value,
+    descripcion: document.getElementById("actDescripcion").value,
+    publicadoPor: "Administrador"
+  });
 
-      <div class="list-item">
-        <strong>Laura Gómez</strong><br>
-        Torre A - Apartamento 102<br>
-        <span class="badge green">Activo</span>
-      </div>
+  alert(r.mensaje);
+}
 
-      <div class="list-item">
-        <strong>Carlos Rivera</strong><br>
-        Torre B - Apartamento 205<br>
-        <span class="badge green">Activo</span>
-      </div>
+/* UTILIDADES */
 
-      <div class="list-item">
-        <strong>María López</strong><br>
-        Torre C - Apartamento 301<br>
-        <span class="badge orange">Pendiente</span>
-      </div>
-    </div>
-  `;
+function badgeEstado(estado) {
+  if (estado === "Atendida" || estado === "Cerrada") return "green";
+  if (estado === "En proceso") return "blue";
+  return "orange";
+}
+
+function cerrarSesion() {
+  localStorage.removeItem("condoUser");
+  localStorage.removeItem("condoAdmin");
+  currentUser = null;
+  currentAdmin = null;
+  currentView = "login";
+  render();
 }
 
 render();
