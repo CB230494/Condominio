@@ -337,6 +337,8 @@ async function cargarSolicitudesAdmin() {
         <p><strong>Tipo:</strong> ${s.TIPO || ""}</p>
         <p>${s.DESCRIPCION || ""}</p>
 
+        ${renderFotosSolicitudAdmin(s)}
+
         <div class="field">
           <label>Prioridad</label>
           <select id="prioridad_${s.ID_SOLICITUD}">
@@ -403,6 +405,25 @@ async function actualizarSolicitudAdmin(idSolicitud) {
 /******************************************************
  * UTILIDADES
  ******************************************************/
+
+function renderFotosSolicitudAdmin(item) {
+  const fotos = [item.FOTO_1, item.FOTO_2, item.FOTO_3].filter(Boolean);
+
+  if (fotos.length === 0) return "";
+
+  return `
+    <div class="fotos-solicitud">
+      <strong><i class="fa-solid fa-images"></i> Fotografías adjuntas</strong>
+      <div class="fotos-grid">
+        ${fotos.map((url, index) => `
+          <a href="${url}" target="_blank">
+            <img src="${url}" alt="Foto ${index + 1}">
+          </a>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
 
 function badgeUsuario(estado) {
   if (estado === "Activo") return "green";
