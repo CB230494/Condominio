@@ -4,7 +4,7 @@
 
 function renderAdmin(seccion = "dashboard") {
   app.innerHTML = `
-    <div class="layout">
+    <div class="layout admin-layout">
       <aside class="sidebar">
         <div class="brand">
           <i class="fa-solid fa-leaf"></i>
@@ -28,26 +28,7 @@ function renderAdmin(seccion = "dashboard") {
         </button>
       </aside>
 
-      <main class="main">
-
-        <div class="admin-mobile-nav">
-          <button class="${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">
-            <i class="fa-solid fa-chart-line"></i> Dashboard
-          </button>
-
-          <button class="${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">
-            <i class="fa-solid fa-users"></i> Usuarios
-          </button>
-
-          <button class="${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">
-            <i class="fa-solid fa-clipboard-list"></i> Solicitudes
-          </button>
-
-          <button onclick="cerrarSesion()">
-            <i class="fa-solid fa-right-from-bracket"></i> Salir
-          </button>
-        </div>
-
+      <main class="main admin-main">
         <div class="topbar">
           <h2>${seccion === "dashboard" ? "Dashboard Ejecutivo" : "Panel Administrativo"}</h2>
           <div class="user-pill">Administrador <i class="fa-solid fa-user-shield"></i></div>
@@ -61,6 +42,28 @@ function renderAdmin(seccion = "dashboard") {
             : adminDashboard()
         }
       </main>
+
+      <div class="admin-bottom-nav">
+        <button class="${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">
+          <strong><i class="fa-solid fa-chart-line"></i></strong>
+          Dashboard
+        </button>
+
+        <button class="${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">
+          <strong><i class="fa-solid fa-users"></i></strong>
+          Usuarios
+        </button>
+
+        <button class="${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">
+          <strong><i class="fa-solid fa-clipboard-list"></i></strong>
+          Solicitudes
+        </button>
+
+        <button onclick="cerrarSesion()">
+          <strong><i class="fa-solid fa-right-from-bracket"></i></strong>
+          Salir
+        </button>
+      </div>
     </div>
   `;
 
