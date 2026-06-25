@@ -29,6 +29,25 @@ function renderAdmin(seccion = "dashboard") {
       </aside>
 
       <main class="main">
+
+        <div class="admin-mobile-nav">
+          <button class="${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+          </button>
+
+          <button class="${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">
+            <i class="fa-solid fa-users"></i> Usuarios
+          </button>
+
+          <button class="${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">
+            <i class="fa-solid fa-clipboard-list"></i> Solicitudes
+          </button>
+
+          <button onclick="cerrarSesion()">
+            <i class="fa-solid fa-right-from-bracket"></i> Salir
+          </button>
+        </div>
+
         <div class="topbar">
           <h2>${seccion === "dashboard" ? "Dashboard Ejecutivo" : "Panel Administrativo"}</h2>
           <div class="user-pill">Administrador <i class="fa-solid fa-user-shield"></i></div>
