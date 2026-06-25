@@ -12,7 +12,6 @@ function renderNuevaSolicitud() {
 
         <div class="field">
           <label>Tipo de solicitud</label>
-
           <select id="tipoSolicitud">
             <option value="Consulta">Consulta</option>
             <option value="Queja">Queja</option>
@@ -20,24 +19,26 @@ function renderNuevaSolicitud() {
             <option value="Solicitud">Solicitud</option>
             <option value="Sugerencia">Sugerencia</option>
           </select>
+        </div>
 
+        <div class="field">
+          <label>Prioridad</label>
+          <select id="prioridadSolicitud">
+            <option value="Baja">🟢 Baja</option>
+            <option value="Media" selected>🟡 Media</option>
+            <option value="Alta">🟠 Alta</option>
+            <option value="Urgente">🔴 Urgente</option>
+          </select>
         </div>
 
         <div class="field">
           <label>Asunto</label>
-
-          <input
-            id="asuntoSolicitud"
-            placeholder="Ejemplo: Fuga de agua">
+          <input id="asuntoSolicitud" placeholder="Ejemplo: Fuga de agua">
         </div>
 
         <div class="field">
           <label>Descripción</label>
-
-          <textarea
-            id="descripcionSolicitud"
-            rows="6"
-            placeholder="Describa detalladamente la situación..."></textarea>
+          <textarea id="descripcionSolicitud" rows="6" placeholder="Describa detalladamente la situación..."></textarea>
         </div>
 
         <button class="btn" onclick="enviarSolicitud()">
@@ -46,9 +47,8 @@ function renderNuevaSolicitud() {
 
         <br><br>
 
-        <button class="btn btn-outline"
-            onclick="renderUsuario('inicio')">
-            Cancelar
+        <button class="btn btn-outline" onclick="renderUsuario('inicio')">
+          Cancelar
         </button>
 
       </div>
@@ -62,107 +62,78 @@ function renderNuevaSolicitud() {
  ******************************************************/
 
 async function enviarSolicitud() {
+  const data = {
+    idUsuario: currentUser.ID_USUARIO,
+    nombre: currentUser.NOMBRE,
+    apellidos: currentUser.APELLIDOS,
+    telefono: currentUser.TELEFONO,
+    correo: currentUser.CORREO,
+    tipo: document.getElementById("tipoSolicitud").value,
+    prioridad: document.getElementById("prioridadSolicitud").value,
+    asunto: document.getElementById("asuntoSolicitud").value,
+    descripcion: document.getElementById("descripcionSolicitud").value,
+    responsable: "Pendiente de asignación"
+  };
 
-    const data = {
+  const r = await API.registrarSolicitud(data);
 
-        idUsuario: currentUser.ID_USUARIO,
+  alert(r.mensaje);
 
-        nombre: currentUser.NOMBRE,
+  if (!r.ok) return;
 
-        apellidos: currentUser.APELLIDOS,
+  if (r.data.whatsappAdmin) {
+    window.open(r.data.whatsappAdmin, "_blank");
+  }
 
-        telefono: currentUser.TELEFONO,
-
-        correo: currentUser.CORREO,
-
-        tipo: document.getElementById("tipoSolicitud").value,
-
-        asunto: document.getElementById("asuntoSolicitud").value,
-
-        descripcion: document.getElementById("descripcionSolicitud").value
-
-    };
-
-    const r = await API.registrarSolicitud(data);
-
-    alert(r.mensaje);
-
-    if(!r.ok) return;
-
-    if(r.data.whatsappAdmin){
-        window.open(r.data.whatsappAdmin,"_blank");
-    }
-
-    renderUsuario("misSolicitudes");
-
+  renderUsuario("misSolicitudes");
 }
 
 /******************************************************
  * CARGAR SOLICITUDES
  ******************************************************/
 
-async function cargarMisSolicitudes(){
+async function cargarMisSolicitudes() {
+  const contenedor = document.getElementById("misSolicitudesBox");
 
-    const contenedor = document.getElementById("misSolicitudesBox");
+  const r = await API.listarSolicitudesUsuario({
+    idUsuario: currentUser.ID_USUARIO,
+    correo: currentUser.CORREO
+  });
 
-    const r = await API.listarSolicitudesUsuario({
+  if (!r.ok) {
+    contenedor.innerHTML = r.mensaje;
+    return;
+  }
 
-        idUsuario: currentUser.ID_USUARIO,
+  const lista = r.data.solicitudes || [];
 
-        correo: currentUser.CORREO
+  if (lista.length === 0) {
+    contenedor.innerHTML = `
+      <div class="card">
+        No tiene solicitudes registradas.
+      </div>
+    `;
+    return;
+  }
 
-    });
+  contenedor.innerHTML = lista.reverse().map(item => `
+    <div class="card" style="margin-bottom:18px;">
+      <h3>${item.ASUNTO}</h3>
 
-    if(!r.ok){
+      <p><b>Tipo:</b> ${item.TIPO}</p>
+      <p><b>Prioridad:</b> ${item.PRIORIDAD || "Media"}</p>
+      <p><b>Responsable:</b> ${item.RESPONSABLE || "Pendiente de asignación"}</p>
+      <p><b>Fecha:</b> ${item.FECHA_HORA}</p>
+      <p><b>Estado:</b> ${item.ESTADO}</p>
 
-        contenedor.innerHTML = r.mensaje;
+      <hr>
 
-        return;
+      <p>${item.DESCRIPCION}</p>
 
-    }
+      <br>
 
-    const lista = r.data.solicitudes || [];
-
-    if(lista.length===0){
-
-        contenedor.innerHTML=`
-            <div class="card">
-                No tiene solicitudes registradas.
-            </div>
-        `;
-
-        return;
-
-    }
-
-    contenedor.innerHTML = lista.reverse().map(item=>`
-
-        <div class="card" style="margin-bottom:18px;">
-
-            <h3>${item.ASUNTO}</h3>
-
-            <p><b>Tipo:</b> ${item.TIPO}</p>
-
-            <p><b>Fecha:</b> ${item.FECHA_HORA}</p>
-
-            <p><b>Estado:</b> ${item.ESTADO}</p>
-
-            <hr>
-
-            <p>${item.DESCRIPCION}</p>
-
-            <br>
-
-            <b>Observación administración</b>
-
-            <p>
-
-            ${item.OBSERVACION_ADMIN || "Sin observaciones"}
-
-            </p>
-
-        </div>
-
-    `).join("");
-
+      <b>Observación administración</b>
+      <p>${item.OBSERVACION_ADMIN || "Sin observaciones"}</p>
+    </div>
+  `).join("");
 }
