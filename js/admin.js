@@ -6,18 +6,32 @@ function renderAdmin(seccion = "dashboard") {
   app.innerHTML = `
     <div class="layout">
       <aside class="sidebar">
-        <div class="brand">🌿 Condominio<br>Los Jardines</div>
+        <div class="brand">
+          <i class="fa-solid fa-leaf"></i>
+          Condominio<br>Los Jardines
+        </div>
 
-        <button class="menu-btn ${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">🏠 Dashboard</button>
-        <button class="menu-btn ${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">👥 Usuarios</button>
-        <button class="menu-btn ${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">📝 Solicitudes</button>
-        <button class="menu-btn" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+        <button class="menu-btn ${seccion === "dashboard" ? "active" : ""}" onclick="renderAdmin('dashboard')">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </button>
+
+        <button class="menu-btn ${seccion === "usuarios" ? "active" : ""}" onclick="renderAdmin('usuarios')">
+          <i class="fa-solid fa-users"></i> Usuarios
+        </button>
+
+        <button class="menu-btn ${seccion === "solicitudes" ? "active" : ""}" onclick="renderAdmin('solicitudes')">
+          <i class="fa-solid fa-clipboard-list"></i> Solicitudes
+        </button>
+
+        <button class="menu-btn" onclick="cerrarSesion()">
+          <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+        </button>
       </aside>
 
       <main class="main">
         <div class="topbar">
           <h2>${seccion === "dashboard" ? "Dashboard Ejecutivo" : "Panel Administrativo"}</h2>
-          <div class="user-pill">Administrador 👤</div>
+          <div class="user-pill">Administrador <i class="fa-solid fa-user-shield"></i></div>
         </div>
 
         ${
@@ -44,7 +58,7 @@ function adminDashboard() {
   return `
     <div class="grid">
       <div class="card stat">
-        <div class="icon">👥</div>
+        <div class="icon"><i class="fa-solid fa-users"></i></div>
         <div>
           <h3 id="totalUsuarios">0</h3>
           <p>Usuarios registrados</p>
@@ -52,7 +66,7 @@ function adminDashboard() {
       </div>
 
       <div class="card stat">
-        <div class="icon">✅</div>
+        <div class="icon"><i class="fa-solid fa-user-check"></i></div>
         <div>
           <h3 id="usuariosActivos">0</h3>
           <p>Usuarios activos</p>
@@ -60,7 +74,7 @@ function adminDashboard() {
       </div>
 
       <div class="card stat">
-        <div class="icon">🕓</div>
+        <div class="icon"><i class="fa-solid fa-clock"></i></div>
         <div>
           <h3 id="usuariosPendientes">0</h3>
           <p>Usuarios pendientes</p>
@@ -68,7 +82,7 @@ function adminDashboard() {
       </div>
 
       <div class="card stat">
-        <div class="icon">📝</div>
+        <div class="icon"><i class="fa-solid fa-clipboard-list"></i></div>
         <div>
           <h3 id="totalSolicitudes">0</h3>
           <p>Solicitudes totales</p>
@@ -76,7 +90,7 @@ function adminDashboard() {
       </div>
 
       <div class="card stat">
-        <div class="icon">🔄</div>
+        <div class="icon"><i class="fa-solid fa-spinner"></i></div>
         <div>
           <h3 id="solicitudesProceso">0</h3>
           <p>En proceso</p>
@@ -84,7 +98,7 @@ function adminDashboard() {
       </div>
 
       <div class="card stat">
-        <div class="icon">🔒</div>
+        <div class="icon"><i class="fa-solid fa-lock"></i></div>
         <div>
           <h3 id="solicitudesCerradas">0</h3>
           <p>Cerradas</p>
@@ -94,19 +108,19 @@ function adminDashboard() {
 
     <div class="section two-cols">
       <div class="card">
-        <h3>📋 Últimas solicitudes</h3>
+        <h3><i class="fa-solid fa-list-check"></i> Últimas solicitudes</h3>
         <div id="ultimasSolicitudesBox">Cargando...</div>
       </div>
 
       <div class="card">
-        <h3>👥 Últimos usuarios</h3>
+        <h3><i class="fa-solid fa-user-group"></i> Últimos usuarios</h3>
         <div id="ultimosUsuariosBox">Cargando...</div>
       </div>
     </div>
 
     <div class="section two-cols">
       <div class="card">
-        <h3>📊 Indicadores</h3>
+        <h3><i class="fa-solid fa-chart-simple"></i> Indicadores</h3>
 
         <div class="metric-block">
           <strong>Solicitudes atendidas/cerradas</strong>
@@ -128,11 +142,15 @@ function adminDashboard() {
       </div>
 
       <div class="card">
-        <h3>⚡ Accesos rápidos</h3>
+        <h3><i class="fa-solid fa-bolt"></i> Accesos rápidos</h3>
 
-        <button class="btn" onclick="renderAdmin('solicitudes')">Ver solicitudes</button>
+        <button class="btn" onclick="renderAdmin('solicitudes')">
+          <i class="fa-solid fa-clipboard-list"></i> Ver solicitudes
+        </button>
         <br><br>
-        <button class="btn btn-outline" onclick="renderAdmin('usuarios')">Gestionar usuarios</button>
+        <button class="btn btn-outline" onclick="renderAdmin('usuarios')">
+          <i class="fa-solid fa-users"></i> Gestionar usuarios
+        </button>
       </div>
     </div>
   `;
@@ -204,7 +222,7 @@ async function cargarDashboardAdmin() {
 function adminUsuarios() {
   return `
     <div class="card">
-      <h3>Usuarios registrados</h3>
+      <h3><i class="fa-solid fa-users"></i> Usuarios registrados</h3>
       <div id="usuariosAdminBox">Cargando usuarios...</div>
     </div>
   `;
@@ -229,27 +247,33 @@ async function cargarUsuariosAdmin() {
   box.innerHTML = usuarios.reverse().map(u => `
     <div class="list-item">
       <strong>${u.NOMBRE || ""} ${u.APELLIDOS || ""}</strong><br>
-      <small>${u.CORREO || ""}</small><br>
-      <small>Tel: ${u.TELEFONO || ""}</small><br>
-      <small>Filial: ${u.FILIAL || ""}</small><br>
-      <small>Registro: ${fechaBonitaAdmin(u.FECHA_REGISTRO)}</small><br><br>
+      <small><i class="fa-solid fa-envelope"></i> ${u.CORREO || ""}</small><br>
+      <small><i class="fa-solid fa-phone"></i> ${u.TELEFONO || ""}</small><br>
+      <small><i class="fa-solid fa-house"></i> ${u.FILIAL || ""}</small><br>
+      <small><i class="fa-solid fa-calendar-days"></i> ${fechaBonitaAdmin(u.FECHA_REGISTRO)}</small><br><br>
 
       <span class="badge ${badgeUsuario(u.ESTADO)}">${u.ESTADO || "Pendiente"}</span>
 
       <br><br>
 
       ${u.ESTADO !== "Activo" ? `
-        <button class="btn" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Activo')">Aprobar</button>
+        <button class="btn" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Activo')">
+          <i class="fa-solid fa-user-check"></i> Aprobar
+        </button>
         <br><br>
       ` : ""}
 
       ${u.ESTADO !== "Rechazado" ? `
-        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Rechazado')">Rechazar</button>
+        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Rechazado')">
+          <i class="fa-solid fa-user-xmark"></i> Rechazar
+        </button>
         <br><br>
       ` : ""}
 
       ${u.ESTADO !== "Inactivo" ? `
-        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Inactivo')">Desactivar</button>
+        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Inactivo')">
+          <i class="fa-solid fa-user-slash"></i> Desactivar
+        </button>
       ` : ""}
     </div>
   `).join("");
@@ -274,7 +298,7 @@ async function cambiarEstadoUsuario(idUsuario, estado) {
 function adminSolicitudes() {
   return `
     <div class="card">
-      <h3>Solicitudes registradas</h3>
+      <h3><i class="fa-solid fa-clipboard-list"></i> Solicitudes registradas</h3>
       <div id="solicitudesAdminBox">Cargando solicitudes...</div>
     </div>
   `;
@@ -304,8 +328,8 @@ async function cargarSolicitudesAdmin() {
     return `
       <div class="list-item">
         <strong>${s.ASUNTO || ""}</strong><br>
-        <small>${fechaBonitaAdmin(s.FECHA_HORA)}</small><br>
-        <small>Usuario: ${s.NOMBRE_COMPLETO || ""}</small><br><br>
+        <small><i class="fa-solid fa-calendar-days"></i> ${fechaBonitaAdmin(s.FECHA_HORA)}</small><br>
+        <small><i class="fa-solid fa-user"></i> ${s.NOMBRE_COMPLETO || ""}</small><br><br>
 
         <span class="badge ${badgeSolicitud(estado)}">Estado: ${estado}</span>
         <span class="badge ${badgePrioridad(prioridad)}">Prioridad: ${prioridad}</span>
@@ -346,7 +370,7 @@ async function cargarSolicitudesAdmin() {
         ${s.FECHA_CIERRE ? `<p><strong>Fecha de cierre:</strong> ${fechaBonitaAdmin(s.FECHA_CIERRE)}</p>` : ""}
 
         <button class="btn" onclick="actualizarSolicitudAdmin('${s.ID_SOLICITUD}')">
-          Guardar seguimiento
+          <i class="fa-solid fa-floppy-disk"></i> Guardar seguimiento
         </button>
       </div>
     `;
