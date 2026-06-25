@@ -720,3 +720,44 @@ textarea {
 .fotos-solicitud {
   margin-top: 14px;
 }
+.admin-mobile-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+
+  .layout {
+    display: block;
+  }
+
+  .main {
+    width: 100%;
+    padding: 18px;
+  }
+
+  .admin-mobile-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .admin-mobile-nav button {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 14px;
+    background: white;
+    color: #064e3b;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(0,0,0,.08);
+    white-space: nowrap;
+  }
+
+  .admin-mobile-nav button.active {
+    background: #064e3b;
+    color: white;
+  }
+}
