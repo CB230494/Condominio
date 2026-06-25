@@ -36,10 +36,6 @@ function renderAdmin(seccion = "dashboard") {
   if (seccion === "solicitudes") cargarSolicitudesAdmin();
 }
 
-/******************************************************
- * DASHBOARD
- ******************************************************/
-
 function adminDashboard() {
   return `
     <div class="grid">
@@ -88,7 +84,7 @@ async function cargarDashboardAdmin() {
 }
 
 /******************************************************
- * USUARIOS ADMIN
+ * USUARIOS
  ******************************************************/
 
 function adminUsuarios() {
@@ -122,40 +118,31 @@ async function cargarUsuariosAdmin() {
       <small>${u.CORREO || ""}</small><br>
       <small>Tel: ${u.TELEFONO || ""}</small><br>
       <small>Filial: ${u.FILIAL || ""}</small><br>
-      <small>Registro: ${fechaBonita(u.FECHA_REGISTRO)}</small><br><br>
+      <small>Registro: ${fechaBonitaAdmin(u.FECHA_REGISTRO)}</small><br><br>
 
       <span class="badge ${badgeUsuario(u.ESTADO)}">${u.ESTADO}</span>
 
       <br><br>
 
       ${u.ESTADO !== "Activo" ? `
-        <button class="btn" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Activo')">
-          Aprobar
-        </button>
+        <button class="btn" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Activo')">Aprobar</button>
         <br><br>
       ` : ""}
 
       ${u.ESTADO !== "Rechazado" ? `
-        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Rechazado')">
-          Rechazar
-        </button>
+        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Rechazado')">Rechazar</button>
         <br><br>
       ` : ""}
 
       ${u.ESTADO !== "Inactivo" ? `
-        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Inactivo')">
-          Desactivar
-        </button>
+        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Inactivo')">Desactivar</button>
       ` : ""}
     </div>
   `).join("");
 }
 
 async function cambiarEstadoUsuario(idUsuario, estado) {
-  const r = await API.actualizarEstadoUsuario({
-    idUsuario,
-    estado
-  });
+  const r = await API.actualizarEstadoUsuario({ idUsuario, estado });
 
   alert(r.mensaje);
 
@@ -167,7 +154,7 @@ async function cambiarEstadoUsuario(idUsuario, estado) {
 }
 
 /******************************************************
- * SOLICITUDES ADMIN
+ * SOLICITUDES
  ******************************************************/
 
 function adminSolicitudes() {
@@ -195,57 +182,61 @@ async function cargarSolicitudesAdmin() {
     return;
   }
 
-  box.innerHTML = solicitudes.reverse().map(s => `
-    <div class="list-item">
-      <strong>${s.ASUNTO}</strong><br>
-      <small>${fechaBonita(s.FECHA_HORA)}</small><br>
-      <small>Usuario: ${s.NOMBRE_COMPLETO}</small><br><br>
+  box.innerHTML = solicitudes.reverse().map(s => {
+    const prioridad = s.PRIORIDAD || "Media";
+    const estado = estadoValido(s.ESTADO) ? s.ESTADO : "Pendiente";
+    const responsable = s.RESPONSABLE || "Pendiente de asignación";
 
-      <span class="badge ${badgeSolicitud(s.ESTADO)}">${s.ESTADO}</span>
-      <span class="badge ${badgePrioridad(s.PRIORIDAD || "Media")}">${s.PRIORIDAD || "Media"}</span>
+    return `
+      <div class="list-item">
+        <strong>${s.ASUNTO || ""}</strong><br>
+        <small>${fechaBonitaAdmin(s.FECHA_HORA)}</small><br>
+        <small>Usuario: ${s.NOMBRE_COMPLETO || ""}</small><br><br>
 
-      <p><strong>Tipo:</strong> ${s.TIPO}</p>
-      <p>${s.DESCRIPCION}</p>
+        <span class="badge ${badgeSolicitud(estado)}">Estado: ${estado}</span>
+        <span class="badge ${badgePrioridad(prioridad)}">Prioridad: ${prioridad}</span>
 
-      <div class="field">
-        <label>Prioridad</label>
-        <select id="prioridad_${s.ID_SOLICITUD}">
-          <option ${s.PRIORIDAD === "Baja" ? "selected" : ""}>Baja</option>
-          <option ${!s.PRIORIDAD || s.PRIORIDAD === "Media" ? "selected" : ""}>Media</option>
-          <option ${s.PRIORIDAD === "Alta" ? "selected" : ""}>Alta</option>
-          <option ${s.PRIORIDAD === "Urgente" ? "selected" : ""}>Urgente</option>
-        </select>
+        <p><strong>Tipo:</strong> ${s.TIPO || ""}</p>
+        <p>${s.DESCRIPCION || ""}</p>
+
+        <div class="field">
+          <label>Prioridad</label>
+          <select id="prioridad_${s.ID_SOLICITUD}">
+            <option ${prioridad === "Baja" ? "selected" : ""}>Baja</option>
+            <option ${prioridad === "Media" ? "selected" : ""}>Media</option>
+            <option ${prioridad === "Alta" ? "selected" : ""}>Alta</option>
+            <option ${prioridad === "Urgente" ? "selected" : ""}>Urgente</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Responsable</label>
+          <input id="responsable_${s.ID_SOLICITUD}" value="${responsable}">
+        </div>
+
+        <div class="field">
+          <label>Estado</label>
+          <select id="estado_${s.ID_SOLICITUD}">
+            <option ${estado === "Pendiente" ? "selected" : ""}>Pendiente</option>
+            <option ${estado === "En proceso" ? "selected" : ""}>En proceso</option>
+            <option ${estado === "Atendida" ? "selected" : ""}>Atendida</option>
+            <option ${estado === "Cerrada" ? "selected" : ""}>Cerrada</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Observación administrativa</label>
+          <textarea id="obs_${s.ID_SOLICITUD}">${s.OBSERVACION_ADMIN || ""}</textarea>
+        </div>
+
+        ${s.FECHA_CIERRE ? `<p><strong>Fecha de cierre:</strong> ${fechaBonitaAdmin(s.FECHA_CIERRE)}</p>` : ""}
+
+        <button class="btn" onclick="actualizarSolicitudAdmin('${s.ID_SOLICITUD}')">
+          Guardar seguimiento
+        </button>
       </div>
-
-      <div class="field">
-        <label>Responsable</label>
-        <input id="responsable_${s.ID_SOLICITUD}" value="${s.RESPONSABLE || "Pendiente de asignación"}">
-      </div>
-
-      <div class="field">
-        <label>Estado</label>
-        <select id="estado_${s.ID_SOLICITUD}">
-          <option ${s.ESTADO === "Pendiente" ? "selected" : ""}>Pendiente</option>
-          <option ${s.ESTADO === "En proceso" ? "selected" : ""}>En proceso</option>
-          <option ${s.ESTADO === "Atendida" ? "selected" : ""}>Atendida</option>
-          <option ${s.ESTADO === "Cerrada" ? "selected" : ""}>Cerrada</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Observación administrativa</label>
-        <textarea id="obs_${s.ID_SOLICITUD}">${s.OBSERVACION_ADMIN || ""}</textarea>
-      </div>
-
-      ${s.FECHA_CIERRE ? `
-        <p><strong>Fecha de cierre:</strong> ${fechaBonita(s.FECHA_CIERRE)}</p>
-      ` : ""}
-
-      <button class="btn" onclick="actualizarSolicitudAdmin('${s.ID_SOLICITUD}')">
-        Guardar seguimiento
-      </button>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 async function actualizarSolicitudAdmin(idSolicitud) {
@@ -272,7 +263,7 @@ async function actualizarSolicitudAdmin(idSolicitud) {
 }
 
 /******************************************************
- * UTILIDADES ADMIN
+ * UTILIDADES
  ******************************************************/
 
 function badgeUsuario(estado) {
@@ -295,7 +286,11 @@ function badgePrioridad(prioridad) {
   return "orange";
 }
 
-function fechaBonita(valor) {
+function estadoValido(estado) {
+  return ["Pendiente", "En proceso", "Atendida", "Cerrada"].includes(estado);
+}
+
+function fechaBonitaAdmin(valor) {
   if (!valor) return "";
 
   const fecha = new Date(valor);
@@ -303,6 +298,7 @@ function fechaBonita(valor) {
   if (isNaN(fecha.getTime())) return valor;
 
   return fecha.toLocaleString("es-CR", {
+    timeZone: "America/Costa_Rica",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
