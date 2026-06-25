@@ -5,11 +5,11 @@
 function renderNuevaSolicitud() {
   app.innerHTML = `
     <div class="mobile-content">
-      <h2>Nueva solicitud</h2>
+      <h2><i class="fa-solid fa-pen-to-square"></i> Nueva solicitud</h2>
 
       <div class="form-card">
         <div class="field">
-          <label>Tipo de solicitud</label>
+          <label><i class="fa-solid fa-list"></i> Tipo de solicitud</label>
           <select id="tipoSolicitud">
             <option value="Consulta">Consulta</option>
             <option value="Queja">Queja</option>
@@ -20,28 +20,34 @@ function renderNuevaSolicitud() {
         </div>
 
         <div class="field">
-          <label>Prioridad</label>
+          <label><i class="fa-solid fa-triangle-exclamation"></i> Prioridad</label>
           <select id="prioridadSolicitud">
-            <option value="Baja">🟢 Baja</option>
-            <option value="Media" selected>🟡 Media</option>
-            <option value="Alta">🟠 Alta</option>
-            <option value="Urgente">🔴 Urgente</option>
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Alta">Alta</option>
+            <option value="Urgente">Urgente</option>
           </select>
         </div>
 
         <div class="field">
-          <label>Asunto</label>
+          <label><i class="fa-solid fa-heading"></i> Asunto</label>
           <input id="asuntoSolicitud" placeholder="Ejemplo: Fuga de agua">
         </div>
 
         <div class="field">
-          <label>Descripción</label>
+          <label><i class="fa-solid fa-align-left"></i> Descripción</label>
           <textarea id="descripcionSolicitud" rows="6" placeholder="Describa detalladamente la situación..."></textarea>
         </div>
 
-        <button class="btn" onclick="enviarSolicitud()">Enviar solicitud</button>
+        <button class="btn" onclick="enviarSolicitud()">
+          <i class="fa-solid fa-paper-plane"></i> Enviar solicitud
+        </button>
+
         <br><br>
-        <button class="btn btn-outline" onclick="renderUsuario('inicio')">Cancelar</button>
+
+        <button class="btn btn-outline" onclick="renderUsuario('inicio')">
+          <i class="fa-solid fa-arrow-left"></i> Cancelar
+        </button>
       </div>
     </div>
   `;
@@ -92,7 +98,7 @@ async function cargarMisSolicitudes() {
   if (lista.length === 0) {
     contenedor.innerHTML = `
       <div class="card">
-        No tiene solicitudes registradas.
+        <i class="fa-solid fa-circle-info"></i> No tiene solicitudes registradas.
       </div>
     `;
     return;
@@ -103,13 +109,13 @@ async function cargarMisSolicitudes() {
 
     return `
       <div class="card" style="margin-bottom:18px;">
-        <h3>${item.ASUNTO || ""}</h3>
+        <h3><i class="fa-solid fa-file-lines"></i> ${item.ASUNTO || ""}</h3>
 
-        <p><b>Tipo:</b> ${item.TIPO || ""}</p>
-        <p><b>Prioridad:</b> ${item.PRIORIDAD || "Media"}</p>
-        <p><b>Responsable:</b> ${item.RESPONSABLE || "Pendiente de asignación"}</p>
-        <p><b>Fecha:</b> ${fechaBonitaUsuario(item.FECHA_HORA)}</p>
-        <p><b>Estado:</b> ${estado}</p>
+        <p><i class="fa-solid fa-list"></i> <b>Tipo:</b> ${item.TIPO || ""}</p>
+        <p><i class="fa-solid fa-triangle-exclamation"></i> <b>Prioridad:</b> ${item.PRIORIDAD || "Media"}</p>
+        <p><i class="fa-solid fa-user-gear"></i> <b>Responsable:</b> ${item.RESPONSABLE || "Pendiente de asignación"}</p>
+        <p><i class="fa-solid fa-calendar-days"></i> <b>Fecha:</b> ${fechaBonitaUsuario(item.FECHA_HORA)}</p>
+        <p><i class="fa-solid fa-circle-check"></i> <b>Estado:</b> ${estado}</p>
 
         <hr>
 
@@ -117,7 +123,7 @@ async function cargarMisSolicitudes() {
 
         <br>
 
-        <b>Observación administración</b>
+        <b><i class="fa-solid fa-comment-dots"></i> Observación administración</b>
         <p>${item.OBSERVACION_ADMIN || "Sin observaciones"}</p>
       </div>
     `;
