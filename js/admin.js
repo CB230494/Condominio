@@ -121,27 +121,32 @@ async function cargarUsuariosAdmin() {
       <strong>${u.NOMBRE || ""} ${u.APELLIDOS || ""}</strong><br>
       <small>${u.CORREO || ""}</small><br>
       <small>Tel: ${u.TELEFONO || ""}</small><br>
-      <small>Filial: ${u.FILIAL || ""}</small><br><br>
+      <small>Filial: ${u.FILIAL || ""}</small><br>
+      <small>Registro: ${fechaBonita(u.FECHA_REGISTRO)}</small><br><br>
 
       <span class="badge ${badgeUsuario(u.ESTADO)}">${u.ESTADO}</span>
 
       <br><br>
 
-      <button class="btn" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Activo')">
-        Aprobar
-      </button>
+      ${u.ESTADO !== "Activo" ? `
+        <button class="btn" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Activo')">
+          Aprobar
+        </button>
+        <br><br>
+      ` : ""}
 
-      <br><br>
+      ${u.ESTADO !== "Rechazado" ? `
+        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Rechazado')">
+          Rechazar
+        </button>
+        <br><br>
+      ` : ""}
 
-      <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Rechazado')">
-        Rechazar
-      </button>
-
-      <br><br>
-
-      <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Inactivo')">
-        Desactivar
-      </button>
+      ${u.ESTADO !== "Inactivo" ? `
+        <button class="btn btn-outline" onclick="cambiarEstadoUsuario('${u.ID_USUARIO}', 'Inactivo')">
+          Desactivar
+        </button>
+      ` : ""}
     </div>
   `).join("");
 }
@@ -193,8 +198,10 @@ async function cargarSolicitudesAdmin() {
   box.innerHTML = solicitudes.reverse().map(s => `
     <div class="list-item">
       <strong>${s.ASUNTO}</strong><br>
-      <small>${s.FECHA_HORA}</small><br>
-      <small>Usuario: ${s.NOMBRE_COMPLETO}</small><br><br>
+      <small>${fechaBonita(s.FECHA_HORA)}</small><br>
+      <small>Usuario: ${s.NOMBRE_COMPLETO}</small><br>
+      <small>Prioridad: ${s.PRIORIDAD || "Media"}</small><br>
+      <small>Responsable: ${s.RESPONSABLE || "Pendiente de asignación"}</small><br><br>
 
       <span class="badge ${badgeSolicitud(s.ESTADO)}">${s.ESTADO}</span>
 
@@ -244,7 +251,7 @@ async function actualizarSolicitudAdmin(idSolicitud) {
 }
 
 /******************************************************
- * BADGES
+ * UTILIDADES ADMIN
  ******************************************************/
 
 function badgeUsuario(estado) {
@@ -258,4 +265,21 @@ function badgeSolicitud(estado) {
   if (estado === "Atendida" || estado === "Cerrada") return "green";
   if (estado === "En proceso") return "blue";
   return "orange";
+}
+
+function fechaBonita(valor) {
+  if (!valor) return "";
+
+  const fecha = new Date(valor);
+
+  if (isNaN(fecha.getTime())) return valor;
+
+  return fecha.toLocaleString("es-CR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
 }
