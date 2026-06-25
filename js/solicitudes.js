@@ -5,11 +5,9 @@
 function renderNuevaSolicitud() {
   app.innerHTML = `
     <div class="mobile-content">
-
       <h2>Nueva solicitud</h2>
 
       <div class="form-card">
-
         <div class="field">
           <label>Tipo de solicitud</label>
           <select id="tipoSolicitud">
@@ -41,25 +39,13 @@ function renderNuevaSolicitud() {
           <textarea id="descripcionSolicitud" rows="6" placeholder="Describa detalladamente la situación..."></textarea>
         </div>
 
-        <button class="btn" onclick="enviarSolicitud()">
-          Enviar solicitud
-        </button>
-
+        <button class="btn" onclick="enviarSolicitud()">Enviar solicitud</button>
         <br><br>
-
-        <button class="btn btn-outline" onclick="renderUsuario('inicio')">
-          Cancelar
-        </button>
-
+        <button class="btn btn-outline" onclick="renderUsuario('inicio')">Cancelar</button>
       </div>
-
     </div>
   `;
 }
-
-/******************************************************
- * ENVIAR SOLICITUD
- ******************************************************/
 
 async function enviarSolicitud() {
   const data = {
@@ -88,10 +74,6 @@ async function enviarSolicitud() {
   renderUsuario("misSolicitudes");
 }
 
-/******************************************************
- * CARGAR SOLICITUDES
- ******************************************************/
-
 async function cargarMisSolicitudes() {
   const contenedor = document.getElementById("misSolicitudesBox");
 
@@ -116,24 +98,50 @@ async function cargarMisSolicitudes() {
     return;
   }
 
-  contenedor.innerHTML = lista.reverse().map(item => `
-    <div class="card" style="margin-bottom:18px;">
-      <h3>${item.ASUNTO}</h3>
+  contenedor.innerHTML = lista.reverse().map(item => {
+    const estado = estadoValidoUsuario(item.ESTADO) ? item.ESTADO : "Pendiente";
 
-      <p><b>Tipo:</b> ${item.TIPO}</p>
-      <p><b>Prioridad:</b> ${item.PRIORIDAD || "Media"}</p>
-      <p><b>Responsable:</b> ${item.RESPONSABLE || "Pendiente de asignación"}</p>
-      <p><b>Fecha:</b> ${item.FECHA_HORA}</p>
-      <p><b>Estado:</b> ${item.ESTADO}</p>
+    return `
+      <div class="card" style="margin-bottom:18px;">
+        <h3>${item.ASUNTO || ""}</h3>
 
-      <hr>
+        <p><b>Tipo:</b> ${item.TIPO || ""}</p>
+        <p><b>Prioridad:</b> ${item.PRIORIDAD || "Media"}</p>
+        <p><b>Responsable:</b> ${item.RESPONSABLE || "Pendiente de asignación"}</p>
+        <p><b>Fecha:</b> ${fechaBonitaUsuario(item.FECHA_HORA)}</p>
+        <p><b>Estado:</b> ${estado}</p>
 
-      <p>${item.DESCRIPCION}</p>
+        <hr>
 
-      <br>
+        <p>${item.DESCRIPCION || ""}</p>
 
-      <b>Observación administración</b>
-      <p>${item.OBSERVACION_ADMIN || "Sin observaciones"}</p>
-    </div>
-  `).join("");
+        <br>
+
+        <b>Observación administración</b>
+        <p>${item.OBSERVACION_ADMIN || "Sin observaciones"}</p>
+      </div>
+    `;
+  }).join("");
+}
+
+function estadoValidoUsuario(estado) {
+  return ["Pendiente", "En proceso", "Atendida", "Cerrada"].includes(estado);
+}
+
+function fechaBonitaUsuario(valor) {
+  if (!valor) return "";
+
+  const fecha = new Date(valor);
+
+  if (isNaN(fecha.getTime())) return valor;
+
+  return fecha.toLocaleString("es-CR", {
+    timeZone: "America/Costa_Rica",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
 }
