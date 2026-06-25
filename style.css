@@ -679,3 +679,44 @@ textarea {
 .icon {
   color: #166534;
 }
+.preview-fotos,
+.fotos-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.foto-preview {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0,0,0,.12);
+}
+
+.foto-preview img,
+.fotos-grid img {
+  width: 92px;
+  height: 92px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.foto-preview button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  border: none;
+  background: rgba(0,0,0,.65);
+  color: white;
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+}
+
+.fotos-solicitud {
+  margin-top: 14px;
+}
