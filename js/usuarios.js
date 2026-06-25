@@ -80,6 +80,7 @@ function usuarioPerfil() {
         <p><strong>Apartamento:</strong> ${currentUser?.APARTAMENTO || ""}</p>
         <p><strong>Correo:</strong> ${currentUser?.CORREO || ""}</p>
         <p><strong>Teléfono:</strong> ${currentUser?.TELEFONO || ""}</p>
+        <p><strong>Estado:</strong> ${currentUser?.ESTADO || ""}</p>
       </div>
     </div>
   `;
