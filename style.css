@@ -667,3 +667,15 @@ textarea {
   color: #6b7280;
   font-weight: bold;
 }
+.menu-btn i,
+.icon i {
+  font-size: 18px;
+}
+
+.brand i {
+  margin-right: 8px;
+}
+
+.icon {
+  color: #166534;
+}
