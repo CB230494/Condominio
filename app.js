@@ -10,11 +10,17 @@ async function api(accion, payload = {}) {
   try {
     const res = await fetch(API_URL, {
       method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
       body: JSON.stringify({ accion, ...payload })
     });
 
-    return await res.json();
+    const text = await res.text();
+    return JSON.parse(text);
+
   } catch (err) {
+    console.error("ERROR API:", err);
     return {
       ok: false,
       mensaje: "No se pudo conectar con el backend."
