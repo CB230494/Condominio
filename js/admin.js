@@ -199,14 +199,28 @@ async function cargarSolicitudesAdmin() {
     <div class="list-item">
       <strong>${s.ASUNTO}</strong><br>
       <small>${fechaBonita(s.FECHA_HORA)}</small><br>
-      <small>Usuario: ${s.NOMBRE_COMPLETO}</small><br>
-      <small>Prioridad: ${s.PRIORIDAD || "Media"}</small><br>
-      <small>Responsable: ${s.RESPONSABLE || "Pendiente de asignación"}</small><br><br>
+      <small>Usuario: ${s.NOMBRE_COMPLETO}</small><br><br>
 
       <span class="badge ${badgeSolicitud(s.ESTADO)}">${s.ESTADO}</span>
+      <span class="badge ${badgePrioridad(s.PRIORIDAD || "Media")}">${s.PRIORIDAD || "Media"}</span>
 
       <p><strong>Tipo:</strong> ${s.TIPO}</p>
       <p>${s.DESCRIPCION}</p>
+
+      <div class="field">
+        <label>Prioridad</label>
+        <select id="prioridad_${s.ID_SOLICITUD}">
+          <option ${s.PRIORIDAD === "Baja" ? "selected" : ""}>Baja</option>
+          <option ${!s.PRIORIDAD || s.PRIORIDAD === "Media" ? "selected" : ""}>Media</option>
+          <option ${s.PRIORIDAD === "Alta" ? "selected" : ""}>Alta</option>
+          <option ${s.PRIORIDAD === "Urgente" ? "selected" : ""}>Urgente</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Responsable</label>
+        <input id="responsable_${s.ID_SOLICITUD}" value="${s.RESPONSABLE || "Pendiente de asignación"}">
+      </div>
 
       <div class="field">
         <label>Estado</label>
@@ -223,6 +237,10 @@ async function cargarSolicitudesAdmin() {
         <textarea id="obs_${s.ID_SOLICITUD}">${s.OBSERVACION_ADMIN || ""}</textarea>
       </div>
 
+      ${s.FECHA_CIERRE ? `
+        <p><strong>Fecha de cierre:</strong> ${fechaBonita(s.FECHA_CIERRE)}</p>
+      ` : ""}
+
       <button class="btn" onclick="actualizarSolicitudAdmin('${s.ID_SOLICITUD}')">
         Guardar seguimiento
       </button>
@@ -233,12 +251,15 @@ async function cargarSolicitudesAdmin() {
 async function actualizarSolicitudAdmin(idSolicitud) {
   const estado = document.getElementById(`estado_${idSolicitud}`).value;
   const observacion = document.getElementById(`obs_${idSolicitud}`).value;
+  const prioridad = document.getElementById(`prioridad_${idSolicitud}`).value;
+  const responsable = document.getElementById(`responsable_${idSolicitud}`).value;
 
   const r = await API.actualizarSolicitud({
     idSolicitud,
     estado,
     observacion,
-    responsable: "Administrador"
+    prioridad,
+    responsable
   });
 
   alert(r.mensaje);
@@ -264,6 +285,13 @@ function badgeUsuario(estado) {
 function badgeSolicitud(estado) {
   if (estado === "Atendida" || estado === "Cerrada") return "green";
   if (estado === "En proceso") return "blue";
+  return "orange";
+}
+
+function badgePrioridad(prioridad) {
+  if (prioridad === "Baja") return "green";
+  if (prioridad === "Alta") return "orange";
+  if (prioridad === "Urgente") return "red";
   return "orange";
 }
 
